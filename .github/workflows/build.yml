@@ -19,6 +19,7 @@ jobs:
             xcrun --sdk iphoneos clang \
               -arch arm64 -miphoneos-version-min=14.0 \
               -dynamiclib -O2 -fno-stack-protector -Wall -Wextra $flags \
+              -lobjc \
               -install_name @rpath/SiriFix$variant.dylib \
               SiriFix.c -o out/SiriFix$variant.dylib
             codesign -f -s - out/SiriFix$variant.dylib
