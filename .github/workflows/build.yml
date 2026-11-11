@@ -1,0 +1,33 @@
+name: Build SiriFix
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          mkdir -p out
+          for variant in Quiet Report; do
+            flags=""
+            if [ "$variant" = "Report" ]; then flags="-DSIRIFIX_REPORT"; fi
+            xcrun --sdk iphoneos clang \
+              -arch arm64 -miphoneos-version-min=14.0 \
+              -dynamiclib -O2 -fno-stack-protector -Wall -Wextra $flags \
+              -install_name @rpath/SiriFix$variant.dylib \
+              SiriFix.c -o out/SiriFix$variant.dylib
+            codesign -f -s - out/SiriFix$variant.dylib
+          done
+          file out/*.dylib
+          otool -L out/SiriFixQuiet.dylib
+          shasum -a 256 out/*.dylib
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SiriFix
+          path: out/*.dylib
